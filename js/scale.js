@@ -17,6 +17,20 @@
 	var ImagesZoom = function(){};
 
 	ImagesZoom.prototype = {
+		finish: function () {
+			var self = this
+			var zoomMask  = document.querySelector(".imgzoom_pack"),
+				zoomImg   = document.querySelector(".imgzoom_pack .imgzoom_img img"),
+				zoomClose = document.querySelector(".imgzoom_pack"),
+				imgSrc    = "";
+			zoomMask.style.cssText = "display:none";
+			zoomImg.src = "";
+			zoomImg.style.cssText = "";
+
+			self._destroy();
+
+			document.removeEventListener("touchmove", self.eventStop, false);
+		},
 		// 给初始化数据
 		init: function(param){
 			var self   = this,
@@ -25,7 +39,7 @@
 			var imgList   = document.querySelectorAll(params.elem + " img"),
 				zoomMask  = document.querySelector(".imgzoom_pack"),
 				zoomImg   = document.querySelector(".imgzoom_pack .imgzoom_img img"),
-				zoomClose = document.querySelector(".imgzoom_pack .imgzoom_x"),
+				zoomClose = document.querySelector(".imgzoom_pack"),
 				imgSrc    = "";
 
 			self.buffMove   = 3; //缓冲系数
@@ -95,6 +109,9 @@
 			self.element.addEventListener("touchend",function(e){
 				self._touchend(e);
 			},false);
+			self.element.addEventListener("click", function(e){
+				console.log(e);
+			})
 		},
 		// 重置坐标数据
 		_destroy: function(){
@@ -133,6 +150,7 @@
 				self.startFingerX    = self.getTouchDist(e).x;
 				self.startFingerY    = self.getTouchDist(e).y;
 			}
+			self.moved = false;
 
 			console.log("pageX: "+getPage(e, "pageX"));
 			console.log("pageY: "+getPage(e, "pageY"));
@@ -148,10 +166,12 @@
 			var touchTarget = e.targetTouches.length; //获得触控点数
 
 			if(touchTarget == 1 && !self.finger){
+				self.moved = true;
 				self._move(e);
 			}
 
 			if(touchTarget>=2){
+				self.moved = true;
 				self._zoom(e);
 			}
 		},
@@ -172,6 +192,11 @@
 			}else if( self.distX<-self.width ){
 				self.newX = -self.width;
 			}
+			if(self.moved == false){
+				self.finish()
+			}
+
+
 			self.reset();
 		},
 		_move: function(e){
